@@ -1,0 +1,14 @@
+# .NET
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+
+# Node
+node_modules/
+dist/
+
+# Variables de entorno
+.env
+appsettings.Development.json
