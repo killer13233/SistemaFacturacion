@@ -40,6 +40,7 @@ export default function FormFactura() {
   const [clienteNuevo, setClienteNuevo] = useState(false);
   const [detalles, setDetalles] = useState([]);
   const [mostrarProductos, setMostrarProductos] = useState(false);
+  const [mostrarPreview, setMostrarPreview] = useState(false); // NUEVO
   const [productos, setProductos] = useState([]);
   const [editando, setEditando] = useState(null);
   const [cantidadEdit, setCantidadEdit] = useState(1);
@@ -138,20 +139,20 @@ export default function FormFactura() {
 
     let idCliente = cliente.id;
 
-   if (clienteNuevo) {
-    try {
+    if (clienteNuevo) {
+      try {
         const nuevoCliente = await crearCliente({ ...cliente, cedula });
         idCliente = nuevoCliente.id;
-    } catch (error) {
+      } catch (error) {
         const clienteCreado = await buscarClientePorCedula(cedula);
         if (clienteCreado && clienteCreado.id) {
-            idCliente = clienteCreado.id;
+          idCliente = clienteCreado.id;
         } else {
-            alert("Error al crear el cliente");
-            return;
+          alert("Error al crear el cliente");
+          return;
         }
+      }
     }
-}
 
     const factura = {
       numeroDocumento: numeroFactura,
@@ -172,6 +173,7 @@ export default function FormFactura() {
       const siguiente = parseInt(numeroFactura.replace("#", "")) + 1;
       setNumeroFactura(`#${String(siguiente).padStart(4, "0")}`);
       limpiar();
+      setMostrarPreview(false);
     } catch (error) {
       alert(error.response?.data?.mensaje || "Error al guardar factura");
     }
@@ -182,7 +184,6 @@ export default function FormFactura() {
 
       {/* Tarjeta cliente */}
       <div style={{ background: "#ffffff", borderRadius: "12px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
           <div>
             <div style={{ fontWeight: "700", fontSize: "20px", color: "#0f172a" }}>Venta de Productos</div>
@@ -354,11 +355,16 @@ export default function FormFactura() {
           </div>
         </div>
 
+        {/* Botones — ahora incluye Previsualizar */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.8rem", marginTop: "1rem" }}>
           <button onClick={limpiar} style={{
             background: "none", border: "1px solid #cbd5e1", borderRadius: "6px",
             color: "#64748b", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px"
           }}>Limpiar</button>
+          <button onClick={() => setMostrarPreview(true)} style={{
+            background: "none", border: "1px solid #2563eb", borderRadius: "6px",
+            color: "#2563eb", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px", fontWeight: "500"
+          }}>👁 Previsualizar</button>
           <button onClick={guardarFactura} style={{
             background: "#2563eb", border: "none", borderRadius: "6px",
             color: "white", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px", fontWeight: "600"
@@ -366,7 +372,7 @@ export default function FormFactura() {
         </div>
       </div>
 
-      {/* Modal productos */}
+      {/* Modal selección de productos */}
       {mostrarProductos && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
@@ -406,6 +412,134 @@ export default function FormFactura() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL PREVISUALIZACIÓN ===================== */}
+      {mostrarPreview && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+          background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center",
+          justifyContent: "center", zIndex: 1000, overflowY: "auto", padding: "2rem 0"
+        }}>
+          <div style={{
+            background: "#ffffff", borderRadius: "12px", width: "600px",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.25)", fontFamily: "sans-serif"
+          }}>
+
+            {/* Cabecera del modal */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.5rem", borderBottom: "1px solid #e2e8f0" }}>
+              <span style={{ fontWeight: "600", color: "#0f172a", fontSize: "15px" }}>Vista previa de factura</span>
+              <button onClick={() => setMostrarPreview(false)} style={{
+                background: "none", border: "none", color: "#94a3b8",
+                cursor: "pointer", fontSize: "22px", lineHeight: 1
+              }}>×</button>
+            </div>
+
+            {/* Cuerpo de la factura */}
+            <div style={{ padding: "2rem" }}>
+
+              {/* Encabezado empresa / número */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "2rem" }}>
+                <div>
+                  <div style={{ fontWeight: "800", fontSize: "22px", color: "#0f172a", letterSpacing: "-0.5px" }}>FACTURA</div>
+                  <div style={{ fontSize: "13px", color: "#64748b", marginTop: "4px" }}>Venta de Productos</div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8" }}>RUC: 1750736776 · Ambato, Ecuador</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "22px", fontWeight: "800", color: "#2563eb" }}>{numeroFactura}</div>
+                  <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>{fecha}</div>
+                </div>
+              </div>
+
+              {/* Datos del cliente */}
+              <div style={{ background: "#f8fafc", borderRadius: "8px", padding: "1rem 1.2rem", marginBottom: "1.5rem" }}>
+                <div style={{ fontSize: "10px", color: "#94a3b8", letterSpacing: "0.1em", marginBottom: "0.6rem" }}>FACTURADO A</div>
+                <div style={{ fontWeight: "600", fontSize: "15px", color: "#0f172a" }}>
+                  {cliente ? `${cliente.nombre} ${cliente.apellido}` : "—"}
+                </div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>
+                  C.I.: {cedula || "—"}
+                </div>
+                {cliente?.email && (
+                  <div style={{ fontSize: "12px", color: "#64748b" }}>{cliente.email}</div>
+                )}
+                {cliente?.telefono && (
+                  <div style={{ fontSize: "12px", color: "#64748b" }}>{cliente.telefono}</div>
+                )}
+                {cliente?.direccion && (
+                  <div style={{ fontSize: "12px", color: "#64748b" }}>{cliente.direccion}</div>
+                )}
+              </div>
+
+              {/* Tabla de productos */}
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", marginBottom: "1.5rem" }}>
+                <thead>
+                  <tr style={{ background: "#1e293b", color: "white" }}>
+                    <th style={{ textAlign: "left", padding: "0.6rem 0.8rem", borderRadius: "6px 0 0 0", fontWeight: "500" }}>Descripción</th>
+                    <th style={{ textAlign: "center", padding: "0.6rem 0.8rem", fontWeight: "500" }}>Cant.</th>
+                    <th style={{ textAlign: "right", padding: "0.6rem 0.8rem", fontWeight: "500" }}>P. Unit.</th>
+                    <th style={{ textAlign: "right", padding: "0.6rem 0.8rem", borderRadius: "0 6px 0 0", fontWeight: "500" }}>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detalles.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ textAlign: "center", padding: "1.5rem", color: "#94a3b8", fontStyle: "italic" }}>
+                        Sin productos agregados
+                      </td>
+                    </tr>
+                  ) : (
+                    detalles.map((d, i) => (
+                      <tr key={i} style={{ background: i % 2 === 0 ? "#ffffff" : "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
+                        <td style={{ padding: "0.6rem 0.8rem", color: "#1e293b" }}>{d.nombreProducto}</td>
+                        <td style={{ padding: "0.6rem 0.8rem", textAlign: "center", color: "#64748b" }}>{d.cantidad}</td>
+                        <td style={{ padding: "0.6rem 0.8rem", textAlign: "right", color: "#64748b" }}>${d.precioUnitario.toFixed(2)}</td>
+                        <td style={{ padding: "0.6rem 0.8rem", textAlign: "right", color: "#1e293b", fontWeight: "500" }}>${d.subtotal.toFixed(2)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+
+              {/* Totales */}
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ width: "220px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", color: "#64748b", fontSize: "13px" }}>
+                    <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", color: "#64748b", fontSize: "13px" }}>
+                    <span>IVA 15%</span><span>${iva.toFixed(2)}</span>
+                  </div>
+                  <div style={{
+                    display: "flex", justifyContent: "space-between",
+                    padding: "0.5rem 0.8rem", marginTop: "0.4rem",
+                    background: "#1e293b", borderRadius: "6px",
+                    fontWeight: "700", fontSize: "15px", color: "white"
+                  }}>
+                    <span>TOTAL</span><span>${total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pie de factura */}
+              <div style={{ marginTop: "2rem", borderTop: "1px dashed #e2e8f0", paddingTop: "1rem", textAlign: "center" }}>
+                <div style={{ fontSize: "12px", color: "#94a3b8" }}>Gracias por su compra · Documento generado el {fecha}</div>
+              </div>
+            </div>
+
+            {/* Botones del modal */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.8rem", padding: "1rem 1.5rem", borderTop: "1px solid #e2e8f0" }}>
+              <button onClick={() => setMostrarPreview(false)} style={{
+                background: "none", border: "1px solid #cbd5e1", borderRadius: "6px",
+                color: "#64748b", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px"
+              }}>Cerrar</button>
+              <button onClick={guardarFactura} style={{
+                background: "#2563eb", border: "none", borderRadius: "6px",
+                color: "white", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px", fontWeight: "600"
+              }}>✓ Confirmar y guardar</button>
+            </div>
           </div>
         </div>
       )}
