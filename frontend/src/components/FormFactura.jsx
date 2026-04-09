@@ -1,25 +1,26 @@
-import { useState , useEffect } from "react";
+import { useState, useEffect } from "react";
 import { buscarClientePorCedula } from '../services/clienteService.js'
 import { getProductos } from "../services/productoService";
-import { createFactura , getFacturas } from "../services/facturaService";
+import { createFactura, getFacturas } from "../services/facturaService";
 import { crearCliente } from "../services/clienteService";
+
 const estiloInput = {
-  background: "#0f3460",
-  border: "1px solid #1a4a7a",
+  background: "#ffffff",
+  border: "1px solid #cbd5e1",
   borderRadius: "6px",
   padding: "0.5rem 0.8rem",
-  color: "#e0e0e0",
+  color: "#1e293b",
   fontSize: "13px",
   width: "100%",
   outline: "none"
 };
 
 const estiloInputEditable = {
-  background: "#1a4a7a",
-  border: "1px solid #e94560",
+  background: "#eff6ff",
+  border: "1px solid #3b82f6",
   borderRadius: "6px",
   padding: "0.5rem 0.8rem",
-  color: "#e0e0e0",
+  color: "#1e293b",
   fontSize: "13px",
   width: "100%",
   outline: "none"
@@ -27,7 +28,7 @@ const estiloInputEditable = {
 
 const estiloLabel = {
   fontSize: "11px",
-  color: "#888",
+  color: "#64748b",
   letterSpacing: "0.08em",
   marginBottom: "4px",
   display: "block"
@@ -44,21 +45,21 @@ export default function FormFactura() {
   const [cantidadEdit, setCantidadEdit] = useState(1);
   const [numeroFactura, setNumeroFactura] = useState("#0001");
 
-useEffect(() => {
+  useEffect(() => {
     const cargarUltimoNumero = async () => {
-        try {
-            const facturas = await getFacturas();
-            if (facturas && facturas.length > 0) {
-                const ultimo = facturas[facturas.length - 1];
-                const siguiente = parseInt(ultimo.numeroDocumento.replace("#", "")) + 1;
-                setNumeroFactura(`#${String(siguiente).padStart(4, "0")}`);
-            }
-        } catch (error) {
-            console.error(error);
+      try {
+        const facturas = await getFacturas();
+        if (facturas && facturas.length > 0) {
+          const ultimo = facturas[facturas.length - 1];
+          const siguiente = parseInt(ultimo.numeroDocumento.replace("#", "")) + 1;
+          setNumeroFactura(`#${String(siguiente).padStart(4, "0")}`);
         }
+      } catch (error) {
+        console.error(error);
+      }
     };
     cargarUltimoNumero();
-}, []);
+  }, []);
 
   const fecha = new Date().toLocaleDateString("es-EC", {
     day: "numeric", month: "long", year: "numeric"
@@ -68,14 +69,14 @@ useEffect(() => {
     if (!cedula) return;
     const data = await buscarClientePorCedula(cedula);
     if (data && data.id) {
-        setCliente(data);
-        setClienteNuevo(false);
+      setCliente(data);
+      setClienteNuevo(false);
     } else {
-        setCliente({ id: 0, cedula, nombre: "", apellido: "", email: "", telefono: "", direccion: "" });
-        setClienteNuevo(true);
-        alert("Cliente no encontrado. Puedes llenar los datos manualmente.");
+      setCliente({ id: 0, cedula, nombre: "", apellido: "", email: "", telefono: "", direccion: "" });
+      setClienteNuevo(true);
+      alert("Cliente no encontrado. Puedes llenar los datos manualmente.");
     }
-};
+  };
 
   const abrirProductos = async () => {
     const data = await getProductos();
@@ -138,8 +139,18 @@ useEffect(() => {
     let idCliente = cliente.id;
 
    if (clienteNuevo) {
-    const nuevoCliente = await crearCliente({ ...cliente, cedula });
-    idCliente = nuevoCliente.id;
+    try {
+        const nuevoCliente = await crearCliente({ ...cliente, cedula });
+        idCliente = nuevoCliente.id;
+    } catch (error) {
+        const clienteCreado = await buscarClientePorCedula(cedula);
+        if (clienteCreado && clienteCreado.id) {
+            idCliente = clienteCreado.id;
+        } else {
+            alert("Error al crear el cliente");
+            return;
+        }
+    }
 }
 
     const factura = {
@@ -154,41 +165,41 @@ useEffect(() => {
         subtotal: d.subtotal
       }))
     };
-    console.log(JSON.stringify(factura, null, 2));
-      
-  try {
-  await createFactura(factura);
-  alert("Factura guardada correctamente");
-const siguiente = parseInt(numeroFactura.replace("#", "")) + 1;
-setNumeroFactura(`#${String(siguiente).padStart(4, "0")}`);
-limpiar();
-} catch (error) {
-  alert(error.response?.data?.mensaje || "Error al guardar factura");
-}
+
+    try {
+      await createFactura(factura);
+      alert("Factura guardada correctamente");
+      const siguiente = parseInt(numeroFactura.replace("#", "")) + 1;
+      setNumeroFactura(`#${String(siguiente).padStart(4, "0")}`);
+      limpiar();
+    } catch (error) {
+      alert(error.response?.data?.mensaje || "Error al guardar factura");
+    }
   };
-  
+
   return (
     <div style={{ maxWidth: "720px", margin: "0 auto" }}>
 
-      <div style={{ background: "#16213e", borderRadius: "12px", padding: "1.5rem", border: "1px solid #0f3460" }}>
+      {/* Tarjeta cliente */}
+      <div style={{ background: "#ffffff", borderRadius: "12px", padding: "1.5rem", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
           <div>
-            <div style={{ fontWeight: "700", fontSize: "20px", color: "#e0e0e0" }}>Venta de Productos</div>
-            <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>RUC: 1790123456001 · Quito, Ecuador</div>
+            <div style={{ fontWeight: "700", fontSize: "20px", color: "#0f172a" }}>Venta de Productos</div>
+            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>RUC: 1750736776 · Ambato, Ecuador</div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "11px", color: "#888" }}>N.° de Factura</div>
-            <div style={{ fontSize: "20px", fontWeight: "700", color: "#e94560" }}>{numeroFactura}</div>
-            <div style={{ fontSize: "12px", color: "#888" }}>{fecha}</div>
+            <div style={{ fontSize: "11px", color: "#64748b" }}>N.° de Factura</div>
+            <div style={{ fontSize: "20px", fontWeight: "700", color: "#2563eb" }}>{numeroFactura}</div>
+            <div style={{ fontSize: "12px", color: "#64748b" }}>{fecha}</div>
           </div>
         </div>
 
         <div style={{ marginBottom: "1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.8rem" }}>
-            <div style={{ fontSize: "11px", color: "#888", letterSpacing: "0.08em" }}>DATOS DEL CLIENTE</div>
+            <div style={{ fontSize: "11px", color: "#94a3b8", letterSpacing: "0.08em" }}>DATOS DEL CLIENTE</div>
             {clienteNuevo && (
-              <span style={{ fontSize: "11px", background: "#e94560", color: "white", padding: "2px 8px", borderRadius: "4px" }}>
+              <span style={{ fontSize: "11px", background: "#3b82f6", color: "white", padding: "2px 8px", borderRadius: "4px" }}>
                 Cliente nuevo
               </span>
             )}
@@ -206,7 +217,7 @@ limpiar();
                   onKeyDown={e => e.key === "Enter" && buscarCliente()}
                 />
                 <button onClick={buscarCliente} style={{
-                  background: "#e94560", border: "none", borderRadius: "6px",
+                  background: "#2563eb", border: "none", borderRadius: "6px",
                   color: "white", padding: "0 10px", cursor: "pointer", fontSize: "14px"
                 }}>⌕</button>
               </div>
@@ -268,18 +279,19 @@ limpiar();
         </div>
       </div>
 
-      <div style={{ background: "#16213e", borderRadius: "12px", padding: "1.5rem", border: "1px solid #0f3460", marginTop: "1rem" }}>
+      {/* Tarjeta productos */}
+      <div style={{ background: "#ffffff", borderRadius: "12px", padding: "1.5rem", border: "1px solid #e2e8f0", marginTop: "1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <div style={{ fontSize: "11px", color: "#888", letterSpacing: "0.08em" }}>DETALLE DE PRODUCTOS</div>
+          <div style={{ fontSize: "11px", color: "#94a3b8", letterSpacing: "0.08em" }}>DETALLE DE PRODUCTOS</div>
           <button onClick={abrirProductos} style={{
-            background: "#0f3460", border: "1px solid #1a4a7a", borderRadius: "6px",
-            color: "#e0e0e0", padding: "0.4rem 1rem", cursor: "pointer", fontSize: "13px"
+            background: "#2563eb", border: "none", borderRadius: "6px",
+            color: "white", padding: "0.4rem 1rem", cursor: "pointer", fontSize: "13px", fontWeight: "500"
           }}>+ Agregar producto</button>
         </div>
 
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
           <thead>
-            <tr style={{ color: "#888", borderBottom: "1px solid #0f3460" }}>
+            <tr style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0" }}>
               <th style={{ textAlign: "left", padding: "0.4rem", fontWeight: "500" }}>#</th>
               <th style={{ textAlign: "left", padding: "0.4rem", fontWeight: "500" }}>Producto</th>
               <th style={{ textAlign: "center", padding: "0.4rem", fontWeight: "500" }}>Cant.</th>
@@ -291,15 +303,15 @@ limpiar();
           <tbody>
             {detalles.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center", padding: "2rem", color: "#555", fontStyle: "italic" }}>
+                <td colSpan="6" style={{ textAlign: "center", padding: "2rem", color: "#94a3b8", fontStyle: "italic" }}>
                   Presiona "Agregar producto" para comenzar
                 </td>
               </tr>
             ) : (
               detalles.map((d, i) => (
-                <tr key={i} style={{ borderBottom: "1px solid #0f3460" }}>
-                  <td style={{ padding: "0.6rem 0.4rem", color: "#888" }}>{i + 1}</td>
-                  <td style={{ padding: "0.6rem 0.4rem" }}>{d.nombreProducto}</td>
+                <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "0.6rem 0.4rem", color: "#94a3b8" }}>{i + 1}</td>
+                  <td style={{ padding: "0.6rem 0.4rem", color: "#1e293b" }}>{d.nombreProducto}</td>
                   <td style={{ padding: "0.6rem 0.4rem", textAlign: "center" }}>
                     {editando === i ? (
                       <input type="number" value={cantidadEdit} min={1}
@@ -308,16 +320,16 @@ limpiar();
                         onKeyDown={e => e.key === "Enter" && guardarCantidad(i)}
                         style={{ ...estiloInput, width: "60px", textAlign: "center" }} autoFocus />
                     ) : (
-                      <span onDoubleClick={() => editarCantidad(i)} style={{ cursor: "pointer", padding: "2px 8px", borderRadius: "4px", background: "#0f3460" }}>
+                      <span onDoubleClick={() => editarCantidad(i)} style={{ cursor: "pointer", padding: "2px 8px", borderRadius: "4px", background: "#f1f5f9", color: "#1e293b" }}>
                         {d.cantidad}
                       </span>
                     )}
                   </td>
-                  <td style={{ padding: "0.6rem 0.4rem", textAlign: "right" }}>${d.precioUnitario.toFixed(2)}</td>
-                  <td style={{ padding: "0.6rem 0.4rem", textAlign: "right" }}>${d.subtotal.toFixed(2)}</td>
+                  <td style={{ padding: "0.6rem 0.4rem", textAlign: "right", color: "#1e293b" }}>${d.precioUnitario.toFixed(2)}</td>
+                  <td style={{ padding: "0.6rem 0.4rem", textAlign: "right", color: "#1e293b" }}>${d.subtotal.toFixed(2)}</td>
                   <td style={{ padding: "0.6rem 0.4rem", textAlign: "center" }}>
                     <button onClick={() => eliminarDetalle(i)} style={{
-                      background: "none", border: "none", color: "#e94560", cursor: "pointer", fontSize: "16px"
+                      background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "16px"
                     }}>×</button>
                   </td>
                 </tr>
@@ -326,16 +338,16 @@ limpiar();
           </tbody>
         </table>
 
-        <div style={{ marginTop: "1rem", borderTop: "1px solid #0f3460", paddingTop: "1rem" }}>
+        <div style={{ marginTop: "1rem", borderTop: "1px solid #e2e8f0", paddingTop: "1rem" }}>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <div style={{ width: "240px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", color: "#888", fontSize: "13px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", color: "#64748b", fontSize: "13px" }}>
                 <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", color: "#888", fontSize: "13px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", color: "#64748b", fontSize: "13px" }}>
                 <span>IVA 15%</span><span>${iva.toFixed(2)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderTop: "1px solid #0f3460", marginTop: "0.3rem", fontWeight: "700", fontSize: "15px", color: "#e0e0e0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderTop: "1px solid #e2e8f0", marginTop: "0.3rem", fontWeight: "700", fontSize: "15px", color: "#0f172a" }}>
                 <span>Total</span><span>${total.toFixed(2)}</span>
               </div>
             </div>
@@ -344,48 +356,49 @@ limpiar();
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.8rem", marginTop: "1rem" }}>
           <button onClick={limpiar} style={{
-            background: "none", border: "1px solid #0f3460", borderRadius: "6px",
-            color: "#aaa", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px"
+            background: "none", border: "1px solid #cbd5e1", borderRadius: "6px",
+            color: "#64748b", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px"
           }}>Limpiar</button>
           <button onClick={guardarFactura} style={{
-            background: "#e94560", border: "none", borderRadius: "6px",
+            background: "#2563eb", border: "none", borderRadius: "6px",
             color: "white", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "13px", fontWeight: "600"
           }}>Guardar factura</button>
         </div>
       </div>
 
+      {/* Modal productos */}
       {mostrarProductos && (
         <div style={{
           position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-          background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
+          background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
         }}>
-          <div style={{ background: "#16213e", borderRadius: "12px", padding: "1.5rem", width: "480px", border: "1px solid #0f3460" }}>
+          <div style={{ background: "#ffffff", borderRadius: "12px", padding: "1.5rem", width: "480px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
-              <span style={{ fontWeight: "600" }}>Seleccionar producto</span>
-              <button onClick={() => setMostrarProductos(false)} style={{ background: "none", border: "none", color: "#e94560", cursor: "pointer", fontSize: "20px" }}>×</button>
+              <span style={{ fontWeight: "600", color: "#0f172a" }}>Seleccionar producto</span>
+              <button onClick={() => setMostrarProductos(false)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "20px" }}>×</button>
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
               <thead>
-                <tr style={{ color: "#888", borderBottom: "1px solid #0f3460" }}>
+                <tr style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0" }}>
                   <th style={{ textAlign: "left", padding: "0.4rem" }}>Producto</th>
                   <th style={{ textAlign: "right", padding: "0.4rem" }}>Precio</th>
-               <th style={{ textAlign: "right", padding: "0.4rem" }}>Stock</th>
-<th style={{ textAlign: "right", padding: "0.4rem" }}>Caducidad</th>
-<th></th>
+                  <th style={{ textAlign: "right", padding: "0.4rem" }}>Stock</th>
+                  <th style={{ textAlign: "right", padding: "0.4rem" }}>Caducidad</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {productos.map((p) => (
-                  <tr key={p.id} style={{ borderBottom: "1px solid #0f3460" }}>
-                    <td style={{ padding: "0.6rem 0.4rem" }}>{p.nombre}</td>
-                    <td style={{ padding: "0.6rem 0.4rem", textAlign: "right" }}>${p.precio.toFixed(2)}</td>
-                   <td style={{ padding: "0.6rem 0.4rem", textAlign: "right" }}>{p.stock}</td>
-<td style={{ padding: "0.6rem 0.4rem", textAlign: "right" }}>
-    {new Date(p.fechaCaducidad).toLocaleDateString("es-EC")}
-</td>
+                  <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "0.6rem 0.4rem", color: "#1e293b" }}>{p.nombre}</td>
+                    <td style={{ padding: "0.6rem 0.4rem", textAlign: "right", color: "#1e293b" }}>${p.precio.toFixed(2)}</td>
+                    <td style={{ padding: "0.6rem 0.4rem", textAlign: "right", color: "#1e293b" }}>{p.stock}</td>
+                    <td style={{ padding: "0.6rem 0.4rem", textAlign: "right", color: "#1e293b" }}>
+                      {new Date(p.fechaCaducidad).toLocaleDateString("es-EC")}
+                    </td>
                     <td style={{ padding: "0.6rem 0.4rem", textAlign: "right" }}>
                       <button onClick={() => agregarProducto(p)} style={{
-                        background: "#e94560", border: "none", borderRadius: "4px",
+                        background: "#2563eb", border: "none", borderRadius: "4px",
                         color: "white", padding: "0.3rem 0.8rem", cursor: "pointer", fontSize: "12px"
                       }}>Agregar</button>
                     </td>
